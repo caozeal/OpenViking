@@ -64,7 +64,7 @@
 #   trae       ~/.trae/hooks.json and TRAE's mcp.json (trae-cn: ~/.trae-cn, TRAE CN)
 #   zcode      ~/.zcode/cli/config.json, ~/.zcode/hooks.json, ~/.zcode/mcp.json
 #   kimicode   ~/.kimi-code/plugins
-  codebuddy  a local marketplace registered with codebuddy, installed from ~/.codebuddy/plugins
+#   codebuddy  a local marketplace registered with codebuddy, installed from ~/.codebuddy/plugins
 #   opencode   ~/.config/opencode/plugins/openviking, openviking.js, opencode.json(c)
 #   pi         ~/.pi/agent/extensions/openviking
 #   dsh        dsh plugin add into the chosen profile
@@ -653,6 +653,8 @@ SEL_CURSOR_APP=0
 SEL_TRAE=0
 SEL_TRAE_CN=0
 SEL_ZCODE=0
+SEL_KIMICODE=0
+SEL_CODEBUDDY=0
 SEL_CLI=0
 TUI_CURSOR=0; TUI_LINES=0
 
@@ -667,7 +669,7 @@ EOF
 }
 
 tui_selectable_count() {
-  printf '%s' $(( $(list_count "$TUI_CLAUDE_BINS") + $(list_count "$TUI_CODEX_BINS") + 9 ))
+  printf '%s' $(( $(list_count "$TUI_CLAUDE_BINS") + $(list_count "$TUI_CODEX_BINS") + 10 ))
 }
 
 tui_total_count() {
@@ -1358,9 +1360,9 @@ prompt_connection() { # sets WIZ_URL / WIZ_KEY (WIZ_KEY may stay __OPENVIKING_KE
   elif [ "$TUI_MENU_CHOICE" -eq 1 ]; then
     info "$(t 'Get an API key in the OpenViking console, under User Management → API Key:' '在 OpenViking 控制台的「用户管理 → API Key」获取密钥：')"
     info "  https://console.volcengine.com/vikingdb/openviking/region:openviking+cn-beijing"
-    ask "$(t "API key ($hidden): " "API key（$hidden）: ")"
+    ask "$(t "API key ($hidden): " "API key（${hidden}）: ")"
   else
-    ask "$(t "API key (press Enter if the server needs none; $hidden): " "API key（服务未开启鉴权可直接回车；$hidden）: ")"
+    ask "$(t "API key (press Enter if the server needs none; $hidden): " "API key（服务未开启鉴权可直接回车；${hidden}）: ")"
   fi
   read_tty reply -s
   if [ "$reply" = "-" ]; then
