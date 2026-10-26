@@ -2548,8 +2548,18 @@ NODE
     # The host CLI resolves a plugin by name@marketplace, so the plugin leaves
     # before the marketplace that served it. Its files stay until the host has
     # let go of it: removing them under an enabled plugin breaks every hook.
-    if command -v codebuddy >/dev/null 2>&1 \
-      && codebuddy plugin uninstall openviking-memory@openviking >/dev/null 2>&1; then
+    local codebuddy_removed=0 codebuddy_list
+    if command -v codebuddy >/dev/null 2>&1; then
+      if codebuddy plugin uninstall openviking-memory@openviking >/dev/null 2>&1; then
+        codebuddy_removed=1
+      elif codebuddy_list="$(codebuddy plugin list 2>/dev/null)"; then
+        case "$codebuddy_list" in
+          *openviking-memory*) ;;
+          *) codebuddy_removed=1 ;;
+        esac
+      fi
+    fi
+    if [ "$codebuddy_removed" = 1 ]; then
       codebuddy plugin marketplace remove openviking >/dev/null 2>&1 || true
       # The host CLI unregisters a plugin but keeps its cached copy, so the
       # marketplace's cache directory goes too.
@@ -2557,7 +2567,7 @@ NODE
       rm -rf "$OV_HOME/agent-integrations/codebuddy"
       info "$(t 'Removed the CodeBuddy Code plugin and its local marketplace.' '已移除 CodeBuddy Code 插件及其本地 marketplace。')"
     else
-      warn "$(t 'Could not uninstall the CodeBuddy Code plugin through the codebuddy CLI; its files were left in place. Remove it with:' '未能通过 codebuddy CLI 卸载 CodeBuddy Code 插件，其文件已保留。用这些命令移除：') codebuddy plugin uninstall openviking-memory@openviking && codebuddy plugin marketplace remove openviking && rm -rf \"$HOME/.codebuddy/plugins/cache/openviking\" \"$OV_HOME/agent-integrations/codebuddy\""
+      warn "$(t 'Could not uninstall the CodeBuddy Code plugin through the codebuddy CLI; its files were left in place. Remove it with:' '未能通过 codebuddy CLI 卸载 CodeBuddy Code 插件，其文件已保留。用这些命令移除：') codebuddy plugin uninstall openviking-memory@openviking; codebuddy plugin marketplace remove openviking; rm -rf \"$HOME/.codebuddy/plugins/cache/openviking\" \"$OV_HOME/agent-integrations/codebuddy\""
     fi
   fi
   if [ ! -d "$OV_HOME/agent-integrations/cursor" ] \
