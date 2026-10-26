@@ -2566,6 +2566,10 @@ NODE
       rm -rf "$HOME/.codebuddy/plugins/cache/openviking"
       rm -rf "$OV_HOME/agent-integrations/codebuddy"
       info "$(t 'Removed the CodeBuddy Code plugin and its local marketplace.' '已移除 CodeBuddy Code 插件及其本地 marketplace。')"
+    elif ! command -v codebuddy >/dev/null 2>&1 \
+      && [ ! -e "$HOME/.codebuddy/plugins/cache/openviking" ] \
+      && [ ! -e "$OV_HOME/agent-integrations/codebuddy" ]; then
+      :
     else
       warn "$(t 'Could not uninstall the CodeBuddy Code plugin through the codebuddy CLI; its files were left in place. Remove it with:' '未能通过 codebuddy CLI 卸载 CodeBuddy Code 插件，其文件已保留。用这些命令移除：') codebuddy plugin uninstall openviking-memory@openviking; codebuddy plugin marketplace remove openviking; rm -rf \"$HOME/.codebuddy/plugins/cache/openviking\" \"$OV_HOME/agent-integrations/codebuddy\""
     fi

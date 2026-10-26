@@ -245,8 +245,8 @@ export function extractCodebuddyTurns(records, cfg = {}) {
     const normalized = payloadForRecord(record);
     if (!normalized) return;
     if (normalized.kind === "message") {
-      // A new message always opens a new turn; tool records seen since the
-      // previous message stay attached to it.
+      // A new message always opens a new turn; tool records that follow an
+      // assistant message stay attached to it.
       flush();
       current = { role: normalized.role, texts: [normalized.text], tools: [], recordIndex: index };
     } else {

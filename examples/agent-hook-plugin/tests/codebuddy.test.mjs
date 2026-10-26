@@ -330,4 +330,3 @@ test("a disabled plugin exits cleanly and touches the network not at all", async
     restoreEnv();
   }
 });
-
