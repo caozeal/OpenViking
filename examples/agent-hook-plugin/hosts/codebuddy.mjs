@@ -6,25 +6,6 @@ import {
 } from "./incremental-turn-capture.mjs";
 import { buildCodebuddyTurns, cleanCodebuddyText } from "./codebuddy-turns.mjs";
 
-// Keyword-mode gate. Language-neutral on purpose: a batch is capture-worthy
-// when some user turn reads like a durable preference/fact rather than a task.
-// The shared per-turn filter has no notion of capture modes, so the veto lives
-// here; a vetoed batch stays unacknowledged and is re-judged on the next event.
-const MEMORY_TRIGGERS = [
-  /remember|preference|prefer|important|decision|decided|always|never/i,
-  /记住|偏好|喜欢|喜爱|崇拜|讨厌|害怕|重要|决定|总是|永远|优先|习惯|爱好|擅长|最爱|不喜欢/i,
-  /[\w.-]+@[\w.-]+\.\w+/,
-  /\+\d{10,}/,
-  /(?:我|my)\s*(?:是|叫|名字|name|住在|live|来自|from|生日|birthday|电话|phone|邮箱|email)/i,
-  /(?:我|i)\s*(?:喜欢|崇拜|讨厌|害怕|擅长|不会|爱|恨|想要|需要|希望|觉得|认为|相信)/i,
-  /(?:favorite|favourite|love|hate|enjoy|dislike|admire|idol|fan of)/i,
-];
-
-function hasMemoryTrigger(items) {
-  return items.some((item) => item.turn.role === "user"
-    && MEMORY_TRIGGERS.some((re) => re.test(item.content)));
-}
-
 export function shouldCommitCodebuddyCapture(event, cfg = {}, previous = 0, captured = 0) {
   if (captured <= 0) return false;
   if (event === "session-end") return true;
@@ -96,11 +77,6 @@ export const codebuddy = {
     }
     const plan = buildIncrementalCapturePlan(transcript.turns, state, ctx.cfg);
     if (plan.toSend.length === 0) return null;
-
-    if (ctx.cfg.captureMode === "keyword" && !hasMemoryTrigger(plan.toSend)) {
-      ctx.log("skip", { reason: "keyword_mode_no_trigger", turns: plan.toSend.length });
-      return null;
-    }
 
     const result = await addAgentMessages(ctx.fetchJSON, ctx.sessionId, plan.payloads, ctx.peerId);
     const next = applyIncrementalCaptureResult(state, plan, result, cleanCodebuddyText);

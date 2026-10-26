@@ -268,8 +268,8 @@ standalone plugin:
 - **No resume/compact archive injection** (`latest_archive_overview`) and no
   profile-repeat skip — the dispatcher's start stage injects the profile and
   replays pending writes only.
-- **No per-turn keyword veto beyond the capture mode**: `captureMode: keyword`
-  keeps the trigger list above, evaluated per batch before the send.
+- **No keyword capture mode.** `captureMode` is not read: like the other
+  agent-hook hosts, every captured batch is sent.
 - **No local recall compressor.** The standalone build defaulted to a small
   model (`hy3`) hard-coded in the adapter; §4.1 wants host defaults declared in
   the schema, and a private model name does not belong there. Users configure

@@ -10,8 +10,7 @@
  */
 
 import assert from "node:assert/strict";
-import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
@@ -332,48 +331,3 @@ test("a disabled plugin exits cleanly and touches the network not at all", async
   }
 });
 
-test("keyword capture mode holds the batch back until a user turn carries a trigger", async () => {
-  const restoreEnv = scrubOpenVikingEnv();
-  const dir = mkdtempSync(join(tmpdir(), "ov-cb-keyword-"));
-  try {
-    const transcript = join(dir, "session.jsonl");
-    writeFileSync(transcript, [
-      JSON.stringify({ type: "message", role: "user", content: [{ type: "input_text", text: "把 main.rs 里的 unwrap 去掉" }] }),
-      JSON.stringify({ type: "message", role: "assistant", content: [{ type: "output_text", text: "改好了" }] }),
-    ].join("\n") + "\n");
-
-    const state = {};
-    const sent = [];
-    const ctx = {
-      cfg: { captureMode: "keyword" },
-      input: { transcript_path: transcript, session_id: "s1" },
-      sessionId: "cb-s1",
-      peerId: "",
-      log: () => {},
-      fetchJSON: async (path, options = {}) => {
-        sent.push({ path, body: options.body });
-        return { ok: true, status: 200, result: { sent: 2 } };
-      },
-    };
-
-    // No trigger in the batch: nothing is sent and the cursor stays put.
-    const held = await codebuddy.capture(ctx, state, "stop");
-    assert.equal(held, null);
-    assert.equal(sent.length, 0);
-    assert.deepEqual(state.capturedTurnIds, undefined);
-
-    // A trigger appears: the same ctx now sends and acknowledges.
-    writeFileSync(transcript, [
-      ...transcriptFixture().trimEnd().split("\n"),
-      JSON.stringify({ type: "message", role: "user", content: [{ type: "input_text", text: "记住：以后都别用 unwrap" }] }),
-    ].join("\n") + "\n");
-    const passed = await codebuddy.capture(ctx, state, "stop");
-    assert.equal(sent.length, 1);
-    assert.match(sent[0].path, /\/messages\/batch$/);
-    assert.ok(JSON.stringify(sent[0].body).includes("记住"), "the triggering turn is sent");
-    assert.ok(passed.capturedTurnIds.length > 0, "the acknowledged turns are recorded in the state");
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-    restoreEnv();
-  }
-});
