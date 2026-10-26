@@ -631,6 +631,16 @@ Each note covers what is specific to one integration. Shared behavior is in the 
 - `UserPromptSubmit` returns plain context text, not JSON.
 - Installation keeps other plugin records and does not edit the older `config.toml` or `mcp.json`.
 
+### CodeBuddy Code
+
+[CodeBuddy Code](./08-community-plugins.md#codebuddy-code-memory-integration). A plugin with 6 hooks, an MCP proxy, and 3 skills, installed by the unified installer as a local marketplace, and an `agent-hook-plugin` host adapter like ZCode and Kimi Code.
+
+- `UserPromptSubmit` and `SessionEnd` fire **only in the interactive TUI**. A headless run (`-p`, `--input-format stream-json`) captures on `Stop` and never sends the final commit.
+- The URI guard denies file tools whose path is a `viking://` URI. The denial reaches the model as the failed tool result; an `allow` carries no text through, so this host has no advisory channel. Shell commands are not checked, so `ov` calls and literal `viking://` arguments still work.
+- `SessionStart` carries no `cwd` and can be delivered twice in one session, so the hook is idempotent and falls back to the process working directory.
+- A hook killed at its timeout does not take its child processes with it, which is what lets a commit run in a detached worker after the hook process returns.
+- Subagent capture is not supported in v1, as on the other community adapters: the host fires the events, but the shared dispatcher has no subagent stage yet.
+
 ### OpenCode
 
 [OpenCode Plugin](./10-opencode.md). The npm plugin `@openviking/opencode-plugin` supports OpenCode v1 (1.15.7 and later) and v2 (2.0.15 and later) from one entry point.
@@ -735,16 +745,6 @@ Behavior that matters in scripts:
 - `ov doctor` exists only in the Python package installed with `uv tool install openviking`, where it checks the server's `ov.conf`. The npm and cargo binaries do not include it.
 
 <a id="_6-custom-agent-integration-guide"></a><a id="_6-1-integration-path-×-capabilities-you-get"></a>
-
-### CodeBuddy Code
-
-[CodeBuddy Code](./08-community-plugins.md#codebuddy-code-memory-integration). A plugin with 6 hooks, an MCP proxy, and 3 skills, installed by the unified installer as a local marketplace, and an `agent-hook-plugin` host adapter like ZCode and Kimi Code.
-
-- `UserPromptSubmit` and `SessionEnd` fire **only in the interactive TUI**. A headless run (`-p`, `--input-format stream-json`) captures on `Stop` and never sends the final commit.
-- The URI guard denies file tools whose path is a `viking://` URI. The denial reaches the model as the failed tool result; an `allow` carries no text through, so this host has no advisory channel. Shell commands are not checked, so `ov` calls and literal `viking://` arguments still work.
-- `SessionStart` carries no `cwd` and can be delivered twice in one session, so the hook is idempotent and falls back to the process working directory.
-- A hook killed at its timeout does not take its child processes with it, which is what lets a commit run in a detached worker after the hook process returns.
-- Subagent capture is not supported in v1, as on the other community adapters: the host fires the events, but the shared dispatcher has no subagent stage yet.
 
 ## Build your own integration
 

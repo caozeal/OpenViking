@@ -630,6 +630,16 @@ Claude Code、Cursor、TRAE、ZCode、Kimi Code、DSH 和 pi 还会安装 **URI 
 - `UserPromptSubmit` 返回纯文本上下文，不是 JSON。
 - 安装时保留其他插件记录，不修改旧的 `config.toml` 或 `mcp.json`。
 
+### CodeBuddy Code
+
+[CodeBuddy Code](./08-community-plugins.md#codebuddy-code-记忆集成)。带 6 个 hook、一个 MCP 代理和 3 个 skill 的插件，由统一安装器以本地 marketplace 的形式安装；与 ZCode、Kimi Code 一样是 `agent-hook-plugin` 的宿主适配器。
+
+- `UserPromptSubmit` 与 `SessionEnd` **只在交互式 TUI 触发**。headless 运行（`-p`、`--input-format stream-json`）只在 `Stop` 捕获，永远不发收尾提交。
+- URI guard 会拒绝路径为 `viking://` URI 的文件类工具。拒绝以「工具调用失败」的形式到达模型；`allow` 携带的文字到不了模型，因此本宿主没有劝告通道。Shell 命令不做检查，`ov` 调用与字面量 `viking://` 参数照常可用。
+- `SessionStart` 不带 `cwd`，且同一会话内可能投递两次，因此该 hook 是幂等的，并以进程工作目录兜底。
+- Hook 超时被杀时不会连带杀掉它的子进程——这正是提交能在 hook 进程返回后在分离的 worker 中完成的原因。
+- v1 不支持子代理采集，与其他社区适配器一致：宿主会触发这些事件，但共享 dispatcher 目前没有子代理阶段。
+
 ### OpenCode
 
 [OpenCode](./10-opencode.md)。npm 插件 `@openviking/opencode-plugin` 用同一个入口支持 OpenCode v1（1.15.7 及以上）和 v2（2.0.15 及以上）。
@@ -732,16 +742,6 @@ CLI 提供而插件没有的能力：多个 `ovcli.conf` profile、账户与用�
 - `ov doctor` 只存在于用 `uv tool install openviking` 安装的 Python 包中，用于检查服务端的 `ov.conf`。npm 和 cargo 安装的二进制不包含它。
 
 <a id="_6-自定义-agent-接入指南"></a><a id="_6-1-接入路径-×-能获得的能力"></a>
-
-### CodeBuddy Code
-
-[CodeBuddy Code](./08-community-plugins.md#codebuddy-code-memory-integration)。带 6 个 hook、一个 MCP 代理和 3 个 skill 的插件，由统一安装器以本地 marketplace 的形式安装；与 ZCode、Kimi Code 一样是 `agent-hook-plugin` 的宿主适配器。
-
-- `UserPromptSubmit` 与 `SessionEnd` **只在交互式 TUI 触发**。headless 运行（`-p`、`--input-format stream-json`）只在 `Stop` 捕获，永远不发收尾提交。
-- URI guard 会拒绝路径为 `viking://` URI 的文件类工具。拒绝以「工具调用失败」的形式到达模型；`allow` 携带的文字到不了模型，因此本宿主没有劝告通道。Shell 命令不做检查，`ov` 调用与字面量 `viking://` 参数照常可用。
-- `SessionStart` 不带 `cwd`，且同一会话内可能投递两次，因此该 hook 是幂等的，并以进程工作目录兜底。
-- Hook 超时被杀时不会连带杀掉它的子进程——这正是提交能在 hook 进程返回后在分离的 worker 中完成的原因。
-- v1 不支持子代理采集，与其他社区适配器一致：宿主会触发这些事件，但共享 dispatcher 目前没有子代理阶段。
 
 ## 自建集成
 
