@@ -54,7 +54,7 @@ Long-term memories are extracted from a session only after a **commit**. Capture
 | TRAE, TRAE CN | Yes, session-aware | Profile, memory index, skills | Every turn | No exit event; turns are already committed | No pre-compaction event |
 | ZCode | Yes, session-aware | Profile, memory index, skills | Every turn | No exit event; turns are already committed | No pre-compaction event |
 | Kimi Code | Yes, session-aware | Profile, memory index, skills, at the first prompt | Every 8 captured messages | Only when `SessionEnd` captures new messages | Commits newly captured messages |
-| CodeBuddy Code | Yes, session-aware, in the interactive TUI only | Profile, memory index, skills | At 20,000 pending tokens | In the interactive TUI only; otherwise at the next start | Commits, then the host summarizes |
+| CodeBuddy Code | Yes, session-aware, in the interactive TUI only | Profile, memory index, skills | Every 8 captured messages | Only when `SessionEnd` captures new messages, in the interactive TUI only | Commits newly captured messages |
 | OpenCode | Yes, session-aware | Profile, memory index, skills, indexed repositories | At 20,000 pending tokens, when idle | Yes, within the host's cleanup time | Commits around compaction |
 | DSH | Yes, session-aware | Profile, memory index, skills, once per session | At 20,000 pending tokens | Yes, with a 3-second budget | Commits, then the host summarizes |
 | pi | Yes, session-aware | Profile, memory index, skills, every turn | Takeover on: about 30,000 tokens; off: 20,000 | Takeover on: no; off: yes | Takeover replaces pi's summary |
@@ -323,7 +323,7 @@ Thresholds in this table are client-side. They read the server's pending-token c
 | TRAE, TRAE CN | Every `Stop` that captured content | None | No pre-compaction event |
 | ZCode | Every `Stop`; turns a missed `Stop` skipped are caught up from the rollout file at the next `Stop` | None | No pre-compaction event |
 | Kimi Code | `Stop` after 8 captured messages since the last commit | `SessionEnd` and `Interrupt` commit when they capture new messages | `PreCompact` commits when it captures new messages |
-| CodeBuddy Code | `Stop` at 20,000 pending tokens | `SessionEnd` (interactive TUI) always commits; `SessionStart` replays queued writes | `PreCompact` always commits |
+| CodeBuddy Code | `Stop` after 8 captured messages since the last commit | `SessionEnd` (interactive TUI only) commits when it captures new messages; `SessionStart` replays queued writes | `PreCompact` commits when it captures new messages |
 | OpenCode | v1 `session.idle`, v2 end of execution: at 20,000 pending tokens | Session deletion, v1 `session.error`, v1 dispose, and v2 cleanup force a commit | v1 before and after compaction; v2 once after compaction ends |
 | DSH | `turn/end` at 20,000 pending tokens | Cordis teardown commits each session | `compaction/start` commits without the threshold check |
 | pi, takeover on (default) | Locally estimated 30,000 tokens with more than 3 user turns | `/viking commit` | `session_before_compact` |
@@ -347,7 +347,7 @@ Thresholds in this table are client-side. They read the server's pending-token c
 | TRAE, TRAE CN | No | No | No | No | No | Every `Stop` already committed, so at most the turn in progress is lost |
 | ZCode | No | Conditional | No | No | No | Ctrl+C after that turn's `Stop` fired lets the detached worker finish. Every `Stop` commits, and missed turns are caught up at the next `Stop` |
 | Kimi Code | Conditional | Conditional | Not verified | Not verified | No | `SessionEnd` and `Interrupt` commit only when they capture new messages; a tail already captured by `Stop` waits for the next commit |
-| CodeBuddy Code | Commits, in the interactive TUI | No | No | No | No | `SessionEnd` is TUI-only, so a headless run relies on the threshold, `/compact`, or the next session start. The commit runs in a detached worker that the hook's own timeout does not reach |
+| CodeBuddy Code | Conditional | No | No | No | No | `SessionEnd` fires only in the interactive TUI and commits only when it captures new messages, so a headless run relies on the threshold or `/compact`. The capture runs in a detached worker that the hook's own timeout does not reach |
 | OpenCode | Conditional | Conditional | Conditional | Conditional | No | v1 1.15.11+ `dispose` and v2 cleanup commit every session, but host cleanup time is limited, so slow requests or many sessions can be cut off. v2 cleanup also runs after 60 minutes idle and on plugin hot reload |
 | DSH | Commits | Commits | Commits | No | No | Teardown gives each session one 3-second commit, queued behind any slow write, inside a 5-second process grace period. A second Ctrl+C force-quits without it. Closing a browser tab in the web form does not tear down |
 | pi, takeover on | No | No | No | No | No | `session_shutdown` saves takeover state but does not commit. The next run that reaches the threshold, or `/viking commit` |
@@ -401,7 +401,7 @@ When the host shortens its context, most integrations make sure the dropped mess
 | Claude Code | Host summarizes | `PreCompact` commits synchronously; this is the one write that never runs in the background, because the host rewrites the transcript right after | `SessionStart` with `source="compact"` injects the archive overview and up to 5 summaries |
 | Codex, TraeCode CLI 2.0 | Host summarizes | `PreCompact` catches up uncaptured turns, commits everything, and starts a new OpenViking session. If the catch-up is incomplete, it does not commit and retries later | The archive summary is injected on resume |
 | Cursor | Host summarizes | `preCompact` commits | Nothing |
-| CodeBuddy Code | Host summarizes | `PreCompact` commits synchronously | Nothing |
+| CodeBuddy Code | Host summarizes | `PreCompact` commits newly captured messages | Nothing |
 | TRAE, TRAE CN, ZCode | Host summarizes | No pre-compaction event | Nothing |
 | Kimi Code | Host summarizes | `PreCompact` commits newly captured messages | Nothing |
 | OpenCode | Host summarizes | v1 flushes and commits; v2 captures the transcript | v1 commits again on `session.compacted`; v2 commits after `session.compaction.ended` |
