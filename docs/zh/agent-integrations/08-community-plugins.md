@@ -100,7 +100,7 @@ curl -fsSL https://openviking.ai/install | bash -s -- --yes --harness codebuddy
 curl -fsSL https://openviking.ai/install | bash -s -- --uninstall --yes --harness codebuddy
 ```
 
-插件从 `~/.openviking/ovcli.conf` 读取连接信息；`OPENVIKING_URL` 与 `OPENVIKING_API_KEY` 可覆盖该文件，按插件的配置位于 `plugin.codebuddy` 下（见[插件配置](../configuration/02-client.md#插件配置)）。安装后新建会话生效（运行中的会话可用 `/reload-plugins`），并用 `codebuddy plugin list` 确认 `openviking-memory@openviking` 已启用。需要诊断时，在组装好的运行时里执行 `ov-memory-doctor.mjs codebuddy`。
+插件从 `~/.openviking/ovcli.conf` 读取连接信息；`OPENVIKING_URL` 与 `OPENVIKING_API_KEY` 可覆盖该文件，按插件的配置位于 `plugin.codebuddy` 下（见[插件配置](../configuration/02-client.md#插件配置)）。安装后新建会话生效（运行中的会话可用 `/reload-plugins`），并用 `codebuddy plugin list` 确认 `openviking-memory@openviking` 已启用。
 
 ### 宿主演决定的行为
 

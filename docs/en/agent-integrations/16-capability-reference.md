@@ -554,7 +554,7 @@ Settings that apply only to some integrations:
 | TRAE, TRAE CN, ZCode | No | None | None | Installer menu |
 | OpenCode | No | None | The same three as Cursor, only when the plugin registers its MCP server | Yes |
 | DSH | No | None | The same three as Cursor | No |
-| CodeBuddy Code | No | None; `ov-memory-doctor.mjs` inside the assembled runtime reports status from the shell | The same three as Cursor | No |
+| CodeBuddy Code | No | None | The same three as Cursor | No |
 | pi | Yes | `/viking`, `/viking commit` | The same three as Cursor, unless `mcpEnabled` is `false` | Yes |
 | OpenClaw | No | `/add-resource`, `/add-skill`, `/ov-search`, `/ov-query-config`, `/ov-recall-trace` | Three plugin skills | Yes; checks the key's role and version compatibility |
 | Hermes (bundled) | No | None | None | Yes; `hermes memory status` lists environment overrides |

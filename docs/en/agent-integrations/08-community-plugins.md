@@ -103,7 +103,7 @@ The installer assembles a self-contained plugin under `~/.openviking/agent-integ
 curl -fsSL https://openviking.ai/install | bash -s -- --uninstall --yes --harness codebuddy
 ```
 
-The plugin reads its connection from `~/.openviking/ovcli.conf`; `OPENVIKING_URL` and `OPENVIKING_API_KEY` override that file, and per-plugin settings live under `plugin.codebuddy` (see [Plugin Settings](../configuration/02-client.md#plugin-settings)). Start a new CodeBuddy session after installing (`/reload-plugins` applies it to a running one), and confirm with `codebuddy plugin list` that `openviking-memory@openviking` is enabled. For diagnostics, run `ov-memory-doctor.mjs codebuddy` from the assembled runtime.
+The plugin reads its connection from `~/.openviking/ovcli.conf`; `OPENVIKING_URL` and `OPENVIKING_API_KEY` override that file, and per-plugin settings live under `plugin.codebuddy` (see [Plugin Settings](../configuration/02-client.md#plugin-settings)). Start a new CodeBuddy session after installing (`/reload-plugins` applies it to a running one), and confirm with `codebuddy plugin list` that `openviking-memory@openviking` is enabled.
 
 ### Behaviour that follows from the host
 

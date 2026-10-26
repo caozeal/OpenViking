@@ -553,7 +553,7 @@ Claude Code 和 Codex 默认 `auto`，其他集成默认 `off`。支持服务端
 | TRAE、TRAE CN、ZCode | 无 | 无 | 无 | 安装器菜单 |
 | OpenCode | 无 | 无 | 与 Cursor 相同的三个，仅在插件注册自己的 MCP 服务时提供 | 有 |
 | DSH | 无 | 无 | 与 Cursor 相同的三个 | 无 |
-| CodeBuddy Code | 无 | 无；可在命令行运行组装运行时内的 `ov-memory-doctor.mjs` 查看状态 | 与 Cursor 相同的三个 | 无 |
+| CodeBuddy Code | 无 | 无 | 与 Cursor 相同的三个 | 无 |
 | pi | 有 | `/viking`、`/viking commit` | 与 Cursor 相同的三个，`mcpEnabled` 为 `false` 时不提供 | 有 |
 | OpenClaw | 无 | `/add-resource`、`/add-skill`、`/ov-search`、`/ov-query-config`、`/ov-recall-trace` | 三个插件 skill | 有；检查 key 的角色和版本兼容性 |
 | Hermes（内置） | 无 | 无 | 无 | 有；`hermes memory status` 列出环境变量覆盖项 |
