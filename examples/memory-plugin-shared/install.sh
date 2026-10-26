@@ -2546,16 +2546,19 @@ NODE
   fi
   if contains_harness codebuddy; then
     # The host CLI resolves a plugin by name@marketplace, so the plugin leaves
-    # before the marketplace that served it.
-    if command -v codebuddy >/dev/null 2>&1; then
-      codebuddy plugin uninstall openviking-memory@openviking >/dev/null 2>&1 || true
+    # before the marketplace that served it. Its files stay until the host has
+    # let go of it: removing them under an enabled plugin breaks every hook.
+    if command -v codebuddy >/dev/null 2>&1 \
+      && codebuddy plugin uninstall openviking-memory@openviking >/dev/null 2>&1; then
       codebuddy plugin marketplace remove openviking >/dev/null 2>&1 || true
+      # The host CLI unregisters a plugin but keeps its cached copy, so the
+      # marketplace's cache directory goes too.
+      rm -rf "$HOME/.codebuddy/plugins/cache/openviking"
+      rm -rf "$OV_HOME/agent-integrations/codebuddy"
+      info "$(t 'Removed the CodeBuddy Code plugin and its local marketplace.' '已移除 CodeBuddy Code 插件及其本地 marketplace。')"
+    else
+      warn "$(t 'Could not uninstall the CodeBuddy Code plugin through the codebuddy CLI; its files were left in place. Remove it with:' '未能通过 codebuddy CLI 卸载 CodeBuddy Code 插件，其文件已保留。用这些命令移除：') codebuddy plugin uninstall openviking-memory@openviking && codebuddy plugin marketplace remove openviking && rm -rf \"$HOME/.codebuddy/plugins/cache/openviking\" \"$OV_HOME/agent-integrations/codebuddy\""
     fi
-    # The host CLI unregisters a plugin but keeps its cached copy, so the
-    # marketplace's cache directory goes too.
-    rm -rf "$HOME/.codebuddy/plugins/cache/openviking"
-    rm -rf "$OV_HOME/agent-integrations/codebuddy"
-    info "$(t 'Removed the CodeBuddy Code plugin and its local marketplace.' '已移除 CodeBuddy Code 插件及其本地 marketplace。')"
   fi
   if [ ! -d "$OV_HOME/agent-integrations/cursor" ] \
     && [ ! -d "$OV_HOME/agent-integrations/trae" ] \
@@ -2735,6 +2738,7 @@ install_codebuddy() {
       *) rm -f "$host_module" ;;
     esac
   done
+  rm -rf "$root/hosts/codebuddy"
   # The plugin directory CodeBuddy copies into its cache has to carry the whole
   # agent-hook layout: the adapters import `../../memory-plugin-shared/lib`,
   # which only resolves when the shared runtime sits beside them under
