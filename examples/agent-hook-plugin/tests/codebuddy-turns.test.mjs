@@ -110,6 +110,23 @@ test("extractCodebuddyTurns treats a lone tool record as an assistant turn", () 
   assert.deepEqual(turns.map((t) => [t.role, t.content]), [["assistant", "[tool: Read]\n{}"]]);
 });
 
+test("extractCodebuddyTurns gives tool use after a user message to the assistant", () => {
+  // The model may call a tool before it writes any text; that activity must
+  // not be captured as part of the user's turn.
+  const turns = extractCodebuddyTurns([
+    message("user", "<user_query>列一下文件</user_query>"),
+    call("Bash", '{"command":"ls"}', "call_1"),
+    result("Bash", "call_1"),
+    message("assistant", "有三个文件"),
+  ]);
+
+  assert.deepEqual(turns.map((t) => t.role), ["user", "assistant", "assistant"]);
+  assert.deepEqual(turns.map((t) => t.turnId), ["0", "1", "3"]);
+  assert.equal(turns[0].content, "列一下文件");
+  assert.match(turns[1].content, /\[tool: Bash\]/);
+  assert.equal(turns[2].content, "有三个文件");
+});
+
 test("extractCodebuddyTurns drops host-authored user records", () => {
   // isMeta marks task notifications and "continue" nudges; skipRun marks slash
   // commands and the command caveat. Neither is a human ask.

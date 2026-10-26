@@ -39,9 +39,10 @@
  *
  * A third, structural difference: because tool calls are their own records, a
  * *turn* is assembled by aggregating — a `message` record opens a turn and the
- * tool records that follow it are folded in until the next `message`. Tool
- * activity with no preceding message of its own still forms an assistant turn,
- * since tool use is assistant-side.
+ * tool records that follow an assistant message are folded in until the next
+ * `message`. Tool activity with no assistant message before it (none at all,
+ * or a user message) forms an assistant turn of its own, since tool use is
+ * assistant-side.
  *
  * The turn's stable id is the index of the record that opened it: the
  * transcript is append-only, so the position of a turn is a durable cursor.
@@ -55,11 +56,6 @@ import {
   normalizeCaptureRole,
   sanitizeCapturedText,
 } from "../../memory-plugin-shared/lib/capture-utils.mjs";
-
-// Named one by one rather than re-exported wholesale: this module has an
-// `extractCaptureTurns` of its own, and `export *` would let the shared one
-// through under the same name with nothing to say which a caller holds.
-export { sanitizeCapturedText };
 
 const TEXT_BLOCK_TYPES = new Set(["text", "input_text", "output_text"]);
 
@@ -254,21 +250,24 @@ export function extractCodebuddyTurns(records, cfg = {}) {
       flush();
       current = { role: normalized.role, texts: [normalized.text], tools: [], recordIndex: index };
     } else {
-      if (!current) current = { role: null, texts: [], tools: [], recordIndex: index };
+      // Tool use is assistant-side: after a user message it opens an
+      // assistant turn of its own rather than landing in the user's.
+      if (current?.role !== "assistant") {
+        flush();
+        current = { role: "assistant", texts: [], tools: [], recordIndex: index };
+      }
       current.tools.push(normalized.payload);
     }
   });
   flush();
 
-  // One payload per turn, in the shape capture-utils walks. Tool records with
-  // no message of their own become assistant turns, since tool use is
-  // assistant-side.
+  // One payload per turn, in the shape capture-utils walks.
   //
   // Tool blocks go *inline in `content`*, never under a top-level `tool_calls`
   // key: `isToolCallBlock()` tests `Boolean(block.tool_calls)`, so that key
   // makes the whole turn look like a single tool call and swallows its text.
   const turnPayloads = collected.map((turn) => ({
-    role: turn.role || "assistant",
+    role: turn.role,
     content: [
       ...turn.texts.map((text) => ({ type: "text", text })),
       ...turn.tools,
